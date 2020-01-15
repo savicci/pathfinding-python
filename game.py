@@ -12,7 +12,6 @@ RECTANGLE = (0, 0, 0)
 TEXT = (0, 0, 0)
  
 
-
 # initialize pygame modules
 pygame.init()
 
@@ -20,8 +19,14 @@ pygame.init()
 screen_width = 1280
 screen_height = 720
 
-table_start_x = 40
-table_start_y = 80
+start = None
+end = None
+
+
+startButton = None
+endButton = None
+blockButton = None
+runButton = None
 
 rows = 20
 columns = 40
@@ -35,11 +40,15 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('A* pathfinding algorithm visualization')
 clock = pygame.time.Clock()
 
-
+mode = 'Start'
 
 def createTable():
     global size
     return [[0 for i in range(columns)] for i in range(rows)]
+
+table = createTable()
+table_start_x = 40
+table_start_y = 80
 
 
 # draws a single point from table on screen
@@ -51,29 +60,41 @@ def drawRectangle(x, y, value):
     elif value == 2: type = START
     else: type = END
 
-    pygame.draw.rect(screen, type, (x,y,box_size, box_size), 1)
-
+    if value == 0:
+        pygame.draw.rect(screen, type, (x,y,box_size, box_size), 1)
+    else:
+        pygame.draw.rect(screen, type, (x,y,box_size, box_size))
 
 
 # iterate over every element and draw it on screen
-def drawTable(table):
-    global table_start_x, table_start_y
+def drawTable():
+    global table, table_start_x, table_start_y
 
     for iidx, row in enumerate(table):
         for jidx, column in enumerate(row):
             drawRectangle(table_start_x + jidx*box_size, table_start_y + iidx*box_size, column)
 
+
 # draw start, end, and block buttons
 def drawButtons():
-    global screen
+    global screen, mode, startButton, endButton, blockButton, runButton
     
     font = pygame.font.SysFont('Arial', 25)
-    pygame.draw.rect(screen, START, (40, 10, 80, 40), 1)
-    screen.blit(font.render('Start', True, RECTANGLE, None), (30,20))
+    startButton = pygame.draw.rect(screen, START, (40, 10, 80, 40))
+    screen.blit(font.render('Start', True, RECTANGLE, None), (60,20))
+
+    endButton = pygame.draw.rect(screen, END, (140, 10, 80, 40))
+    screen.blit(font.render('End', True, RECTANGLE, None), (165,20))
+
+    blockButton = pygame.draw.rect(screen, BLOCK, (240, 10, 80, 40))
+    screen.blit(font.render('Block', True, RECTANGLE, None), (260, 20))
+
+    runButton = pygame.draw.rect(screen, RECTANGLE, (340, 10, 80, 40))
+    screen.blit(font.render('Run', True, SCREEN, None), (365, 20))
+
+    screen.blit(font.render('Mode chosen: {}'.format(mode), True, RECTANGLE, None), (465, 20))
+
     pygame.display.update()
-
-
-
 
 
 def handleMouseClick():
@@ -81,18 +102,87 @@ def handleMouseClick():
     
     # should update blocks
     if ( pos[0] >= 40 and pos[0] <= 1210 + box_size ) and (pos[1] >= 80  and pos[1] <= 650 + box_size):
-        print('I will update blocks')
+        updateBlock()
+
+    #should change mode
+    if (pos[0] >= 40 and pos[0] <= 340 + 80) and (pos[1] >= 10 and pos[1] <= 10 + 40):
+        changeMode()
+
+
+def updateBlock():
+    global screen, table, table_start_x, table_start_y, box_size, start, end
+
+    pos = pygame.mouse.get_pos()
+
+    row = 0
+    col = 0
+
+    while True:
+        if (pos[0] >= table_start_x + col*box_size + box_size):
+            col +=1
+        else: break
+
+    while True:
+        if(pos[1] >= table_start_y + row*box_size + box_size):
+            row +=1
+        else: break
+    
+    print(row, col)
+
+    if mode == 'Start':
+        if start != None:
+            print('Start {}'.format(start))
+            table[start[0]][start[1]] = 0
+            start = [row, col]
+        else:
+            start = [row, col]
+        table[row][col] = 2
+
+    elif mode == 'End':
+        if end != None:
+            print('Start {}'.format(end))
+            table[end[0]][end[1]] = 0
+            end = [row, col]
+        else:
+            end = [row, col]
+        table[row][col] = 3
+
+    elif mode == 'Block':
+        if table[row][col] == 1:
+            table[row][col] = 0
+        else: 
+            table[row][col] = 1
+    else:
+        print('do nothing')
+
+    
 
 
 
+# if hit any of the buttons change mode
+def changeMode():
+    global mode,startButton, endButton, blockButton, runButton
+
+    pos = pygame.mouse.get_pos()
+
+    if startButton.collidepoint(pos[0], pos[1]):
+        mode = 'Start'
+    elif endButton.collidepoint(pos[0], pos[1]):
+        mode = 'End'
+    elif blockButton.collidepoint(pos[0], pos[1]):
+        mode = 'Block'
+    elif runButton.collidepoint(pos[0], pos[1]):
+        mode = 'Run'
+
+
+def runVisualization():
+    print('Running visualization')
 
 
 def setUpVisualization():
-    global screen 
+    global screen, mode 
 
     done = False 
-
-    table = createTable()
 
     while not done:
         for event in pygame.event.get():
@@ -101,13 +191,15 @@ def setUpVisualization():
                 if event.type == pygame.MOUSEBUTTONUP:
                     handleMouseClick()
                     
-                    
 
+        if mode == 'Run':
+            runVisualization()
+            mode = 'Block'
 
 
         screen.fill(SCREEN)
 
-        drawTable(table)
+        drawTable()
         drawButtons()
 
         pygame.display.flip()
