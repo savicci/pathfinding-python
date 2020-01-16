@@ -1,4 +1,5 @@
 #!usr/bin/python3
+import time
 class Node():
     """A node class for A* Pathfinding"""
 
@@ -16,6 +17,7 @@ class Node():
 
 def astar(maze, start, end):
     """Returns a list of tuples as a path from the given start to the given end in the given maze"""
+    print('Astar algorithm')
 
     # Create start and end node
     start_node = Node(None, start)
@@ -66,7 +68,7 @@ def astar(maze, start, end):
                 continue
 
             # Make sure walkable terrain
-            if maze[node_position[0]][node_position[1]] != 0:
+            if maze[node_position[0]][node_position[1]] != 0 and (node_position[0],node_position[1]) != end:
                 continue
 
             # Create new node
@@ -77,7 +79,8 @@ def astar(maze, start, end):
 
         # Loop through children
         for child in children:
-
+            maze[child.position[0]][child.position[1]] = 7
+            time.sleep(0.1)
             # Child is on the closed list
             for closed_child in closed_list:
                 if child == closed_child:
@@ -96,4 +99,19 @@ def astar(maze, start, end):
             # Add the child to the open list
             open_list.append(child)
 
+if __name__ == "__main__":
+    maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
+    start = (0, 0)
+    end = (0, 5)
+
+    print(astar(maze, start, end))

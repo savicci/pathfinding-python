@@ -2,6 +2,7 @@
 import pygame
 from astar import astar
 from enum import Enum
+from threading import Thread
 
 # colors used to color the screen
 START = (252, 3, 3)
@@ -10,6 +11,8 @@ BLOCK = (140, 140, 140)
 SCREEN = (255, 255, 255)
 RECTANGLE = (0, 0, 0)
 TEXT = (0, 0, 0)
+PATH = (97, 235, 52)
+STEP = (66, 245, 191)
  
 
 # initialize pygame modules
@@ -57,8 +60,7 @@ def drawRectangle(x, y, value):
     
     if value == 0: type = RECTANGLE
     elif value == 1: type = BLOCK
-    elif value == 2: type = START
-    else: type = END
+    else: pass
 
     if value == 0:
         pygame.draw.rect(screen, type, (x,y,box_size, box_size), 1)
@@ -72,7 +74,16 @@ def drawTable():
 
     for iidx, row in enumerate(table):
         for jidx, column in enumerate(row):
-            drawRectangle(table_start_x + jidx*box_size, table_start_y + iidx*box_size, column)
+            if (iidx, jidx) == start:
+                pygame.draw.rect(screen, START, (table_start_x + jidx*box_size, table_start_y + iidx*box_size , box_size, box_size))
+            elif (iidx,jidx) == end:
+                pygame.draw.rect(screen, END, (table_start_x + jidx*box_size, table_start_y + iidx*box_size, box_size, box_size))
+            elif table[iidx][jidx] == 7:
+                pygame.draw.rect(screen, STEP, (table_start_x + jidx*box_size, table_start_y + iidx*box_size, box_size, box_size))
+            elif table[iidx][jidx] == 5:
+                pygame.draw.rect(screen, PATH, (table_start_x + jidx*box_size, table_start_y + iidx*box_size, box_size, box_size))
+            elif table[iidx][jidx] != 5:
+                drawRectangle(table_start_x + jidx*box_size, table_start_y + iidx*box_size, column)
 
 
 # draw start, end, and block buttons
@@ -130,30 +141,16 @@ def updateBlock():
     print(row, col)
 
     if mode == 'Start':
-        if start != None:
-            print('Start {}'.format(start))
-            table[start[0]][start[1]] = 0
-            start = [row, col]
-        else:
-            start = [row, col]
-        table[row][col] = 2
-
+        start = (row, col)
     elif mode == 'End':
-        if end != None:
-            print('Start {}'.format(end))
-            table[end[0]][end[1]] = 0
-            end = [row, col]
-        else:
-            end = [row, col]
-        table[row][col] = 3
-
+        end = (row, col)
     elif mode == 'Block':
         if table[row][col] == 1:
             table[row][col] = 0
         else: 
             table[row][col] = 1
     else:
-        print('do nothing')
+        pass
 
     
 
@@ -176,13 +173,23 @@ def changeMode():
 
 
 def runVisualization():
-    print('Running visualization')
+    global table, start, end
+    # print(table)
+    # print(start)
+    # print(end)
+    result = astar(table, start, end)
+    
+    for i in result:
+        table[i[0]][i[1]] = 5
+
 
 
 def setUpVisualization():
-    global screen, mode 
+    global screen, mode, table, start, end 
 
-    done = False 
+    done = False
+    steps = []
+    path = []
 
     while not done:
         for event in pygame.event.get():
@@ -193,7 +200,9 @@ def setUpVisualization():
                     
 
         if mode == 'Run':
-            runVisualization()
+            thread = Thread(target = runVisualization, args=())
+            thread.start()
+            print('hello in main')
             mode = 'Block'
 
 
