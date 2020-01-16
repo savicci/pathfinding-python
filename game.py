@@ -30,6 +30,7 @@ startButton = None
 endButton = None
 blockButton = None
 runButton = None
+clearButton = None
 
 rows = 20
 columns = 40
@@ -88,7 +89,7 @@ def drawTable():
 
 # draw start, end, and block buttons
 def drawButtons():
-    global screen, mode, startButton, endButton, blockButton, runButton
+    global screen, mode, startButton, endButton, blockButton, runButton, clearButton
     
     font = pygame.font.SysFont('Arial', 25)
     startButton = pygame.draw.rect(screen, START, (40, 10, 80, 40))
@@ -103,7 +104,10 @@ def drawButtons():
     runButton = pygame.draw.rect(screen, RECTANGLE, (340, 10, 80, 40))
     screen.blit(font.render('Run', True, SCREEN, None), (365, 20))
 
-    screen.blit(font.render('Mode chosen: {}'.format(mode), True, RECTANGLE, None), (465, 20))
+    clearButton = pygame.draw.rect(screen, RECTANGLE, (440, 10, 80, 40))
+    screen.blit(font.render('Clear', True, SCREEN, None), (460, 20))
+
+    screen.blit(font.render('Mode chosen: {}'.format(mode), True, RECTANGLE, None), (565, 20))
 
     pygame.display.update()
 
@@ -116,7 +120,7 @@ def handleMouseClick():
         updateBlock()
 
     #should change mode
-    if (pos[0] >= 40 and pos[0] <= 340 + 80) and (pos[1] >= 10 and pos[1] <= 10 + 40):
+    if (pos[0] >= 40 and pos[0] <= 440 + 80) and (pos[1] >= 10 and pos[1] <= 10 + 40):
         changeMode()
 
 
@@ -158,7 +162,7 @@ def updateBlock():
 
 # if hit any of the buttons change mode
 def changeMode():
-    global mode,startButton, endButton, blockButton, runButton
+    global mode,startButton, endButton, blockButton, runButton, clearButton, table
 
     pos = pygame.mouse.get_pos()
 
@@ -170,6 +174,10 @@ def changeMode():
         mode = 'Block'
     elif runButton.collidepoint(pos[0], pos[1]):
         mode = 'Run'
+    elif clearButton.collidepoint(pos[0], pos[1]):
+        print('createtable')
+        table = createTable()
+        
 
 
 def runVisualization():
@@ -202,7 +210,6 @@ def setUpVisualization():
         if mode == 'Run':
             thread = Thread(target = runVisualization, args=())
             thread.start()
-            print('hello in main')
             mode = 'Block'
 
 
